@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: h2-forward-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h2-forward
+  namespace: h2-forward-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h2-forward
+  template:
+    metadata:
+      labels:
+        app: h2-forward
+    spec:
+      containers:
+      - image: docker.io/igarciaolaizola/h2-forward:81ee24e
+        name: h2-forward
+        command: [ "h2-forward" ]
+        args: ["--addr", ":8080", "--port", "8081"]
