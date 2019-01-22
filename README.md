@@ -5,5 +5,5 @@ HTTP2 reverse proxy implemented in golang
 ## Usage
 
 ```
-go run cmd/h2-forward/main.go --addr=localhost:8080 --port=8081
+go run cmd/h2-forward/main.go --addr=localhost:8080 --port=8081 --host-old=.127.0.0.1.nip.io
 ```

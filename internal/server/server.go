@@ -21,13 +21,23 @@ const (
 	maxConcurrentStreams = 1000 // "infinite", per spec. 1000 seems good enough
 )
 
+// Config holds proxy server configuration
+type Config struct {
+	Addr    string
+	Port    int
+	HostOld string
+	HostNew string
+}
+
 // Run executes the forward proxy server
-func Run(addr string, port int) error {
+func Run(cfg *Config) error {
 	director := func(req *http.Request) {
 		req.URL.Scheme = "http"
-		if port > 0 {
-			req.URL.Host = fmt.Sprintf("%s:%d", strings.Split(req.Host, ":")[0], port)
+		if cfg.Port > 0 {
+			req.URL.Host = fmt.Sprintf("%s:%d", strings.Split(req.Host, ":")[0], cfg.Port)
 		}
+		req.URL.Host = strings.Replace(req.URL.Host, cfg.HostOld, cfg.HostNew, -1)
+		req.Host = strings.Replace(req.URL.Host, cfg.HostOld, cfg.HostNew, -1)
 	}
 
 	transport := &http2.Transport{
@@ -49,7 +59,7 @@ func Run(addr string, port int) error {
 	})
 
 	server := &http.Server{
-		Addr:    addr,
+		Addr:    cfg.Addr,
 		Handler: handler,
 	}
 

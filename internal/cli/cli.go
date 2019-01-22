@@ -7,18 +7,18 @@ import (
 
 // NewCommand create and returns the root cli command
 func NewCommand() *cobra.Command {
-	var addr string
-	var port int
-
+	cfg := &server.Config{}
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Launches the http2 proxy server",
 		RunE: func(c *cobra.Command, args []string) error {
-			return server.Run(addr, port)
+			return server.Run(cfg)
 		},
 	}
 
-	cmd.Flags().StringVar(&addr, "addr", "localhost:8080", "listening address")
-	cmd.Flags().IntVar(&port, "port", 8081, "port to forward")
+	cmd.Flags().StringVar(&cfg.Addr, "addr", "localhost:8080", "listening address")
+	cmd.Flags().IntVar(&cfg.Port, "port", 8081, "port to forward")
+	cmd.Flags().StringVar(&cfg.HostOld, "host-old", ".127.0.0.1.nip.io", "host part to be replaced")
+	cmd.Flags().StringVar(&cfg.HostNew, "host-new", "", "host part to be used instead of host-old")
 	return cmd
 }
