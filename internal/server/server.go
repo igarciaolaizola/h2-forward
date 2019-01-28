@@ -33,11 +33,13 @@ type Config struct {
 func Run(cfg *Config) error {
 	director := func(req *http.Request) {
 		req.URL.Scheme = "http"
+		if host := req.Header.Get("H2-Host-Override"); host != "" {
+			req.URL.Host = host
+			req.Host = host
+		}
 		if cfg.Port > 0 {
 			req.URL.Host = fmt.Sprintf("%s:%d", strings.Split(req.Host, ":")[0], cfg.Port)
 		}
-		req.URL.Host = strings.Replace(req.URL.Host, cfg.HostOld, cfg.HostNew, -1)
-		req.Host = strings.Replace(req.URL.Host, cfg.HostOld, cfg.HostNew, -1)
 	}
 
 	transport := &http2.Transport{

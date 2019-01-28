@@ -19,7 +19,7 @@ spec:
         app: h2-forward
     spec:
       containers:
-      - image: docker.io/igarciaolaizola/h2-forward:a1f8025
+      - image: docker.io/igarciaolaizola/h2-forward:latest
         name: h2-forward
         command: [ "h2-forward" ]
-        args: ["--addr", ":8080", "--port", "8081", "--host-old", ".127.0.0.1.nip.io"]
+        args: ["--addr", ":8080", "--port", "8081"]
