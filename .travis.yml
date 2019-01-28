@@ -1,0 +1,26 @@
+sudo: required
+language: go
+go_import_path: github.com/igarciaolaizola/h2-forward
+go:
+- 1.11.x
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL http://git.io/goreleaser | bash
+  on:
+    tags: true
+services:
+- docker
+after_success:
+- CGO_ENABLED="0" GOARCH="amd64" GOOS="linux" go build -a -installsuffix cgo -o ./build/container/h2-forward-linux-amd64 ./cmd/h2-forward
+- docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+- export REPO=$DOCKER_USER/h2-forward
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_TAG ; fi`
+- echo $REPO:$TAG
+- docker build -f ./build/container/Dockerfile -t $REPO:$TAG .
+- docker push $REPO
+env:
+  global:
+  - secure: JuNtNFqo/dJbIyLaWgr1gGP+P+QvQJ/ie/7aP8DzYvhrGd9Hjtej2V+1LQWF1pBIAlKkOysG15Wof8NCPGVV/0xoUPA94nv9sv+7BhfPnPLS5Xk0Sr7YYN0HK69tJW8DSUcJ3BXSaNeozzguTN4JQbOFMHRob6lFt4Ko/DmbXtU0UZat7sofhvu8ag/Av+e5Fl87V4oQjnuznztg0lO8ycOt1ME38W2iUWpkFIy96z2tTzwCuFtL8KDNtKR129YM1YJ5IcqgbM8p7z3gFYA4FuUelRg6ssVg2tYfusRsy5KkhIrsibnbtS8mxX/HqJdOZ7CFHc4oUrmRxqqh8jXOhYt1Ve2I6VHFe1Lyy/gCWfdvHENICaAvLl88o7m/9MND6TGALyBlMOfZo54XU+sbzieK1fEiC9BS475gwiadZwZLkTi82b5MqLk+7IWOGmYP8lTNtxutSvw2ql5paXPYYtqm/7cvhpc9LcSfnG8MeuVGb0Ga5lgmQj1oxfxJ+/oglr3r55DDaRdGjNGK43yVjvs8k2SlTQexh7u8dvW8ZnzaUhBJSWzkPgricYSnJGKwgCFBhs+tFOk/xU6/t1pKuTnVufSA8mRhP2ZtdUHrizADsVs1MjxwF/nMiYwE35Hw5i27qWYXrNgsSl0Z9rdwmhqUnXhAw01nw6Ik0tQf8+c=
+  - secure: VLOwFuuSIE/Msj2+b8SE3q8XZOFLEhhAA0CTweUh3cxjvmTuEZaJY4ffaNerkHznJWtVVCg7sTyaiQVxqpSCLAVQVV02ZhTO9tgt/I1sURXIFSZbWu2l2Xan/VrvUXs+VmBRdVoC9tZnCDnQctz6NOVkDn317polzwjjWrjQYuBpcpPeBfOdv68PzV9rZtctcqUntmMrmm3VMqdkglNr+KaP3FCwQB6U07Y/bX5ER8WyryFXlUVNa6tkDuF4tPoKL5ti0aHUdYs4kpX30FLf+iwQxEOSRArbQ5JDNgp4mU48W9/9ZS6vGzMxjXtaG5gFyjeBjMps365Gdg++6ZT0jzEgafmEbikT9+WIkECdJ52MWD81jm3B+kRg/uzi5/KNnKHy3Zkw0ZR6zisoJni32oHAPtr7Z+H1hHw+3ejZmELHz4rw39SEIEaXyONjv8DouRV/vQCih9YdE4fYV/8x+cx1xE3pxRNwSjMbB9k5y4Z8bgOXIQvJMPscX9ti7OVKDy6fsqBpvsPxL0hTkqioVynoUYuIQ0Hw+wjORoTb7mNeC2Tz4qMS3/8ZmkOexEvzve5j8PPoMVInBkyoz4NNSxqEZ+JXaki4A4IqMoedUDZI0luXmJQ2wOb6x5KRrFTbjYSsZN1MHZEi+mQ9zDYZxeigUMhNmFwFEkmVjAXSCbE=
+  - secure: JwSKyDFe3/mDYBLX/CL5OKnVDOiHiKT/hLV6haQrjj1kM+CVrTpMynmdrRqZxsAs1gK+m+TNh3tCf3xa5i73/CzwuCFknAm9InTVhyxFsJxrPBuxixp8IXto2hnNFUKoSTT33Xd2ovyz27hR7DvHCFUAA4Qcf+7iMXVOuvbshbgN42e1/Svqk+IrEM0o0+9YeffvIL0wdDcjvPTjQD/nsElJA9dneCeRDtn7L8EaFyLMH3GvwOJb8nqnldCC59Z/RvrvOLI2eR0ngIOReDog2T9KwAzX6x2/DQwMF7IVnVI8OJp4RetJtHiy1xPAgmJC/i+N9XVsJqf25zOy+L4bRgvpfCqVaZVCM9laX5rpd8JK4niA8iBjBW8lblgn/9a7oSvOwqJd4GUJC3WIm7AFNNgRlg2YoVnJNEqPz4OHfikHcJabY8s8zCZj5NxYMKIFvIveKzcchjD1YA+SyWfNk2CMQBvnkV/bGJiEiQ2cCIwsXVaTgiEUSjJMNs+nN9LjsK4AgLW40tQhXBOiDE8hiuaA4xCTB6Uh9RY7Z8Vq1AAIP3rq2jgWVJY/TjsXfJQK0YMklvl2qozsxfhULWizRJgvFbUnwmGRqueYxhILbV99ZF410/1tHe5F2p6D4iK8MfUts7rEQRqlP1gRQvZf/vgSE9qG19jUe/tV7l5npXM=
