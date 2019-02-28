@@ -23,10 +23,8 @@ const (
 
 // Config holds proxy server configuration
 type Config struct {
-	Addr    string
-	Port    int
-	HostOld string
-	HostNew string
+	Addr      string
+	Port      int
 }
 
 // Run executes the forward proxy server
@@ -42,16 +40,9 @@ func Run(cfg *Config) error {
 		}
 	}
 
-	transport := &http2.Transport{
-		AllowHTTP: true,
-		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-			return net.Dial(network, addr)
-		},
-	}
-
 	proxy := &httputil.ReverseProxy{
 		Director:      director,
-		Transport:     transport,
+		Transport:     &h2cTransport{},
 		FlushInterval: 50 * time.Millisecond,
 	}
 
@@ -66,4 +57,19 @@ func Run(cfg *Config) error {
 	}
 
 	return server.ListenAndServe()
+}
+
+// h2cTransport implements http.Roundtripper creating a new http2.Transport on each call
+type h2cTransport struct {
+}
+
+// RoundTrip implements http.Roundtripper.Roundtrip
+func (h *h2cTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	transport := &http2.Transport{
+		AllowHTTP: true,
+		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+			return net.Dial(network, addr)
+		},
+	}
+	return transport.RoundTrip(req)
 }
